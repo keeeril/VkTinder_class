@@ -12,15 +12,14 @@ class VkBot:
         year = None if 'bdate' not in res or not res['bdate'][-4:].isnumeric() else res['bdate'][-4:]
         city = None if 'city' not in res else res['city']['title']
         sex = None if 'sex' not in res else res['sex']
-        # return res
         return {'name': res['first_name'], 'sex': sex, 'year': year, 'city': city}
 
     def vk_user_search(self, data):
-        city = data['city']
-        sex = 2 if data['sex'] == 1 else 1
+        city = data['city'] # Default parametrs
+        sex = 2 if data['sex'] == 1 else 1 # Default parametrs
         age = self.now.year - int(data['year'])
-        age_from = age - 5 if sex == 1 else age  # Возраст от: на 5 лет младше пользователя, если муж
-        age_to = age_from + 5 if sex == 2 else age  # Возраст до: на 5 лет старше пользователя, если жен
+        age_from = age # Default parametrs
+        age_to = age # Default parametrs
         rs = VkTools(self.vk).get_all_iter(
             method='users.search',
             max_count=1000,

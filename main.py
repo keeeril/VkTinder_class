@@ -24,7 +24,7 @@ def photo_sender(id_user, attachment):
     vk.messages.send(user_id=id_user, attachment=attachment, random_id=0)
 
 
-def get_message():
+def messages():
     user_res = vk.messages.getConversations()
     user_input = user_res['items'][0]['last_message']['text']
     return user_input
@@ -54,23 +54,22 @@ def message_bot():
             candidates = [[cand_info['id'], cand_info['first_name'], cand_info['last_name']] for cand_info in
                           bot.vk_user_search(user_info) if cand_info['is_closed'] is False]
 
-            if message_in in ["привет", "хай", "здорова", "начать"]:
-                sender(user_id, f"Хай {user_info['name']}! Я уже ищу для Вас пару...")
+            if message_in in ["привет"]:
+                sender(user_id, f"Привет {user_info['name']}! Сейчас подберу пару из вашего города и возраста...")
                 time.sleep(2)
-                print(f"{user_info}")
 
                 if user_info['year'] is None or len(user_info['year']) < 4:
                     sender(user_id, "Уточните, в каком году Вы родились? (Пример: 1988)")
                     time.sleep(5)
-                    user_info['year'] = get_message()
+                    user_info['year'] = messages()
 
                 if user_info['city'] is None:
                     sender(user_id, "Уточните, в каком городе Вы проживаете?")
                     time.sleep(7)
-                    user_info['city'] = get_message().title()
+                    user_info['city'] = messages().title()
 
                 sender(user_id, f"Подходящие кондидаты:")
-                # d = db_candidate(candidates)
+                d = db_candidate(candidates)
                 # print(d)
                 if bot.get_vk_photos(d[0]) == 'No photos':
                     sender(user_id, f"[id{d[0]}|{d[1]} {d[2]}] - Фотографий нет", keyboard)
@@ -78,8 +77,24 @@ def message_bot():
                     sender(user_id, f"[id{d[0]}|{d[1]} {d[2]}]", keyboard)
                     photo_sender(user_id, bot.get_vk_photos(d[0]))
 
-            elif message_in in ["еще", "ещё", "след", "следующий"]:
-                # d = db_candidate(candidates)
+            elif message_in in ['другой город']:
+                sender(user_id, "В каком городе ищем?")
+                user_info['city'] = messages().title()
+
+            elif message_in in ['другой возраст']:
+                sender(user_id, "укажите возраст от")
+                user_info['age_from'] = messages()
+                time.sleep(5)
+                sender(user_id, "укажите возраст до")
+                user_info['age_to'] = messages()
+
+            elif message_in in ['другой пол']:
+                sender(user_id, "Укажите пол")
+                user_info['sex'] = messages()
+
+
+            elif message_in in ["еще", "след", "следующий", 'дальше']:
+                d = db_candidate(candidates)
                 # print(d)
                 if bot.get_vk_photos(d[0]) == 'No photos':
                     sender(user_id, f"[id{d[0]}|{d[1]} {d[2]}] - Фотографий нет", keyboard)
@@ -88,7 +103,7 @@ def message_bot():
                     photo_sender(user_id, bot.get_vk_photos(d[0]))
 
             elif message_in == "пока":
-                sender(user_id, "Пока((")
+                sender(user_id, "До встречи)")
 
             else:
                 sender(event.user_id, "Не понял вашего ответа...")
